@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
+    <title>Document</title>
+    <style>
+      rect {
+        fill: none;
+        stroke: silver;
+        width: 80px;
+        height: 40px;
+      }
+
+      path {
+        fill: none;
+        stroke: red;
+      }
+
+      text {
+        dominant-baseline: middle;
+        text-anchor: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const svg = d3
+        .select("body")
+        .append("svg")
+        .attr("width", 900)
+        .attr("height", 600)
+        .append("g")
+        .attr("transform", "translate(50,50)");
+      const data = [
+        { id: 1, parentId: null, child: "John" },
+        { id: 2, parentId: 3, child: "Aaron" },
+        { id: 3, parentId: 1, child: "Kevin" },
+        { id: 4, parentId: 1, child: "Ann" },
+        { id: 5, parentId: 3, child: "Sarah" },
+        { id: 6, parentId: 4, child: "Hannah" },
+        { id: 7, parentId: 4, child: "Mark" },
+        { id: 8, parentId: 5, child: "Rose" },
+        { id: 9, parentId: 5, child: "Angel" },
+        { id: 10, parentId: 7, child: "Tom" },
+      ];
+      const dataStructure = d3
+        .stratify()
+        .id(function (d) {
+          return d.id;
+        })
+        .parentId(function (d) {
+          return d.parentId;
+        })(data);
+
+      dataStructure.each(function (d) {
+        d.name = d.data.child;
+      });
+
+      const treeStructure = d3.tree().size([650, 300]);
+      const information = treeStructure(dataStructure);
+
+      const rectangles = svg
+        .append("g")
+        .selectAll("rect")
+        .data(information.descendants());
+      rectangles
+        .enter()
+        .append("rect")
+        .attr("x", function (d) {
+          return d.x - 40;
+        })
+        .attr("y", function (d) {
+          return d.y - 20;
+        });
+
+      const connections = svg
+        .append("g")
+        .selectAll("path")
+        .data(information.links());
+
+      connections
+        .enter()
+        .append("path")
+        .attr("d", function (d) {
+          return `M${
+            d.source.x
+          },${d.source.y} C ${d.source.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${(d.source.y + d.target.y) / 2} +${d.target.x},${d.target.y}`;
+        });
+
+      const names = svg
+        .append("g")
+        .selectAll("text")
+        .data(information.descendants());
+
+      names
+        .enter()
+        .append("text")
+        .text(function (d) {
+          return d.data.child;
+        })
+        .attr("x", function (d) {
+          return d.x;
+        })
+        .attr("y", function (d) {
+          return d.y;
+        });
+    </script>
+  </body>
+</html>
