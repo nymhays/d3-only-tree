@@ -7,24 +7,45 @@
     <title>Document</title>
     <style>
       rect {
-        fill: none;
+        fill: white;
         stroke: silver;
         width: 80px;
         height: 40px;
+        stroke-width: 2;
       }
 
       path {
         fill: none;
-        stroke: red;
+        stroke: silver;
       }
 
       text {
         dominant-baseline: middle;
         text-anchor: middle;
       }
+
+      .bigger {
+        font-size: 20px;
+      }
+
+      #details {
+        position: absolute;
+        left: 320px;
+        top: 120px;
+        width: 100px;
+        height: 30px;
+        background: gray;
+        color: white;
+        visibility: hidden;
+        border-radius: 15px;
+        text-align: center;
+        padding: 15px;
+        font-size: 20px;
+      }
     </style>
   </head>
   <body>
+    <div id="details"></div>
     <script>
       const svg = d3
         .select("body")
@@ -34,16 +55,16 @@
         .append("g")
         .attr("transform", "translate(50,50)");
       const data = [
-        { id: 1, parentId: null, child: "John" },
-        { id: 2, parentId: 3, child: "Aaron" },
-        { id: 3, parentId: 1, child: "Kevin" },
-        { id: 4, parentId: 1, child: "Ann" },
-        { id: 5, parentId: 3, child: "Sarah" },
-        { id: 6, parentId: 4, child: "Hannah" },
-        { id: 7, parentId: 4, child: "Mark" },
-        { id: 8, parentId: 5, child: "Rose" },
-        { id: 9, parentId: 5, child: "Angel" },
-        { id: 10, parentId: 7, child: "Tom" },
+        { id: 1, parentId: null, child: "John", spouse: "Isabella" },
+        { id: 2, parentId: 3, child: "Aaron", spouse: "" },
+        { id: 3, parentId: 1, child: "Kevin", spouse: "Emma" },
+        { id: 4, parentId: 1, child: "Ann", spouse: "Nna" },
+        { id: 5, parentId: 3, child: "Sarah", spouse: "Josh" },
+        { id: 6, parentId: 4, child: "Hannah", spouse: "" },
+        { id: 7, parentId: 4, child: "Mark", spouse: "Tammy" },
+        { id: 8, parentId: 5, child: "Rose", spouse: "" },
+        { id: 9, parentId: 5, child: "Angel", spouse: "" },
+        { id: 10, parentId: 7, child: "Tom", spouse: "" },
       ];
       const dataStructure = d3
         .stratify()
@@ -61,20 +82,6 @@
       const treeStructure = d3.tree().size([650, 300]);
       const information = treeStructure(dataStructure);
 
-      const rectangles = svg
-        .append("g")
-        .selectAll("rect")
-        .data(information.descendants());
-      rectangles
-        .enter()
-        .append("rect")
-        .attr("x", function (d) {
-          return d.x - 40;
-        })
-        .attr("y", function (d) {
-          return d.y - 20;
-        });
-
       const connections = svg
         .append("g")
         .selectAll("path")
@@ -84,9 +91,36 @@
         .enter()
         .append("path")
         .attr("d", function (d) {
-          return `M${
-            d.source.x
-          },${d.source.y} C ${d.source.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${(d.source.y + d.target.y) / 2} +${d.target.x},${d.target.y}`;
+          return `M${d.source.x},${d.source.y} v 50 H${d.target.x} V${d.target.y}`;
+        });
+
+      const rectangles = svg
+        .append("g")
+        .selectAll("rect")
+        .data(information.descendants());
+
+      rectangles
+        .enter()
+        .append("rect")
+        .attr("x", function (d) {
+          return d.x - 40;
+        })
+        .attr("y", function (d) {
+          return d.y - 20;
+        })
+        .on("mousedown", function (d) {
+          d3.select("#details")
+            .style("visibility", "visible")
+            .html(function () {
+              if (d.data.spouse) {
+                return `Spouse: ${d.data.spouse}`;
+              } else {
+                return "No spouse";
+              }
+            });
+        })
+        .on("mouseup", function () {
+          d3.select("#details").style("visibility", "hidden");
         });
 
       const names = svg
@@ -105,7 +139,8 @@
         })
         .attr("y", function (d) {
           return d.y;
-        });
+        })
+        .classed("bigger", true);
     </script>
   </body>
 </html>
